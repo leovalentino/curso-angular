@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {RecipeSerivce} from '../recipes/recipe.serivce';
 import {Recipe} from '../recipes/recipe.model';
 import {exhaustMap, map, take, tap} from 'rxjs/operators';
@@ -21,11 +21,9 @@ export class DataStorageService {
   }
 
   fetchRecipes() {
-    this.authService.userSubject.pipe(
-      take(1),
-      exhaustMap(user => {
-        return this.http.get<Recipe[]>('https://ng-course-recipe-book-7a77b-default-rtdb.firebaseio.com/recipes.json');
-      }),
+    return this.http.get<Recipe[]>(
+      'https://ng-course-recipe-book-7a77b-default-rtdb.firebaseio.com/recipes.json'
+    ).pipe(
       map(recipes => {
         return recipes.map(recipe => {
           return {...recipe, ingredients: recipe.ingredients ? recipe.ingredients : []};
