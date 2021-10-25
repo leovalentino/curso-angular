@@ -5,6 +5,9 @@ import {Observable, Subscription} from 'rxjs';
 import {Router} from '@angular/router';
 import {AlertComponent} from '../shared/alert/alert.component';
 import {PlaceholderDirective} from '../shared/placeholder/placeholder.directive';
+import {Store} from '@ngrx/store';
+import * as fromApp from '../store/app.reducer';
+import * as AuthActions from './store/auth.ations';
 
 @Component({
   selector: 'app-auth',
@@ -21,9 +24,17 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   constructor(private authService: AuthService,
               private router: Router,
-              private componentFactoryResolver: ComponentFactoryResolver) { }
+              private componentFactoryResolver: ComponentFactoryResolver,
+              private store: Store<fromApp.AppState>) { }
 
   ngOnInit(): void {
+    this.store.select('auth').subscribe(authState => {
+      this.isLoading = authState.loading;
+      this.error = authState.authError;
+      if (this.error) {
+        this.showErrorAlert(this.error);
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -48,12 +59,13 @@ export class AuthComponent implements OnInit, OnDestroy {
     let authObs: Observable<AuthResponseData>;
 
     if (this.isLoginMode) {
-      authObs = this.authService.login(email, password);
+      //authObs = this.authService.login(email, password);
+      this.store.dispatch(new AuthActions.LoginStart({email: email, password: password}));
     } else {
       authObs = this.authService.signUp(email, password);
     }
 
-    authObs.subscribe(respData => {
+    /*authObs.subscribe(respData => {
         console.log(respData);
         this.isLoading = false;
         this.router.navigate(['/recipes']);
@@ -64,7 +76,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.showErrorAlert(errorMessage);
         this.isLoading = false;
       }
-    );
+    );*/
 
     authForm.reset();
   }
