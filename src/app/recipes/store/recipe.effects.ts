@@ -1,4 +1,4 @@
-import {Actions, Effect, ofType} from '@ngrx/effects';
+import {Actions, createEffect, Effect, ofType} from '@ngrx/effects';
 import * as RecipeActions from './recipe.actions';
 import {map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {Recipe} from '../recipe.model';
@@ -10,9 +10,8 @@ import * as fromApp from '../../store/app.reducer';
 @Injectable()
 export class RecipeEffects {
 
-  @Effect()
-  fetchRecipes = this.actions$.pipe(
-    ofType(RecipeActions.FETCH_RECIPES),
+  fetchRecipes$ = createEffect(() => this.actions$.pipe(
+    ofType(RecipeActions.fetchRecipes),
     switchMap(() => {
       return this.http.get<Recipe[]>(
         'https://ng-course-recipe-book-7a77b-default-rtdb.firebaseio.com/recipes.json'
@@ -23,12 +22,13 @@ export class RecipeEffects {
         return {...recipe, ingredients: recipe.ingredients ? recipe.ingredients : []};
       });
     }),
-    map(recipes => new RecipeActions.SetRecipes(recipes))
+    map(recipes => RecipeActions.setRecipes( { recipes }))
+    )
   );
 
   @Effect({dispatch: false})
   storeRecipes = this.actions$.pipe(
-    ofType(RecipeActions.STORE_RECIPES),
+    ofType(RecipeActions.storeRecipes),
     withLatestFrom(this.store.select('recipes')),
     switchMap(([actionData, recipesState]) => {
       return this.http.put('https://ng-course-recipe-book-7a77b-default-rtdb.firebaseio.com/recipes.json', recipesState.recipes);
